@@ -1,0 +1,7 @@
+{
+    "package": "LocalServer",
+    "name": "Local Server Addon",
+    "mod": 1640800000,
+    "conflicts": [],
+    "conf": {}
+}

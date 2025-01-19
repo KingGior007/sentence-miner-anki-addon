@@ -10,7 +10,7 @@ from flask_cors import CORS  # Import CORS
 logging.getLogger('werkzeug').disabled = True
 
 app = Flask(__name__)
-CORS(app, resources={r"/add_card": {"origins": "https://www.netflix.com"}})
+CORS(app, resources={r"/add_card": {"origins": ["https://www.netflix.com", "https://www.youtube.com"]}})
 
 @app.route('/add_card', methods=['POST'])
 def add_card():

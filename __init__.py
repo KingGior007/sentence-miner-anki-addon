@@ -1,9 +1,10 @@
 import threading
 import logging
+from typing import Any
 from flask import Flask, request, jsonify
-from aqt import mw
-from aqt.qt import QAction
-from aqt.utils import showInfo
+from aqt import mw # type: ignore
+from aqt.qt import QAction # type: ignore
+from aqt.utils import showInfo # type: ignore
 from flask_cors import CORS  # Import CORS
 
 # Disable colorama logging for Werkzeug
@@ -14,23 +15,22 @@ CORS(app, resources={r"/add_card": {"origins": ["https://www.netflix.com", "http
 
 @app.route('/add_card', methods=['POST'])
 def add_card():
-    
-    data = request.json
+    data: Any = request.json
     if 'front' not in data or 'back' not in data or 'deck' not in data:
         return jsonify({'error': 'Invalid data'}), 400
 
     deck_name = data['deck']
     deck_id = mw.col.decks.id(deck_name)
     mw.col.decks.select(deck_id)
-    
+
     note = mw.col.newNote()
     note["Front"] = data['front']
     note["Back"] = data['back']
     note.model()['did'] = deck_id  # Set the deck ID for the note
-    
+
     mw.col.addNote(note)
     return jsonify({'status': 'Card added', 'deck': data['deck']}), 200
-    
+
 
 def run_server():
     try:

@@ -11,7 +11,10 @@ from flask_cors import CORS  # Import CORS
 logging.getLogger('werkzeug').disabled = True
 
 app = Flask(__name__)
-CORS(app, resources={r"/add_card": {"origins": ["https://www.netflix.com", "https://www.youtube.com"]}})
+CORS(app, resources={
+    r"/add_card": {"origins": ["https://www.netflix.com", "https://www.youtube.com"]},
+    r"/get_known_core_words": {"origins": ["https://www.netflix.com", "https://www.youtube.com"]}
+    })
 
 @app.route('/add_card', methods=['POST'])
 def add_card():
@@ -20,8 +23,11 @@ def add_card():
         return jsonify({'error': 'Invalid data'}), 400
 
     deck_name = data['deck']
-    deck_id = mw.col.decks.id(deck_name)
-    mw.col.decks.select(deck_id)
+    try:
+        deck_id = mw.col.decks.id(deck_name)
+        mw.col.decks.select(deck_id)
+    except:
+        return jsonify({'error': 'Error selecting the deck'}), 400
 
     note = mw.col.newNote()
     note["Front"] = data['front']
@@ -30,6 +36,29 @@ def add_card():
 
     mw.col.addNote(note)
     return jsonify({'status': 'Card added', 'deck': data['deck']}), 200
+
+@app.route('/get_known_core_words', methods=['POST'])
+def get_known_core_words():
+    data: Any = request.json
+    if 'deck' not in data or 'wordField' not in data:
+           return jsonify({'error': 'Invalid data'}), 400
+
+    word_field = data['wordField']
+    deck_name = data['deck']
+    try:
+        deck_id = mw.col.decks.id(deck_name)
+        mw.col.decks.select(deck_id)
+    except:
+        return jsonify({'error': 'Error selecting the deck'}), 400
+
+    note_ids = mw.col.findNotes(f'deck:"{deck_name}" -is:new')
+    known_core_words = []
+    for note_id in note_ids:
+        note = mw.col.getNote(note_id)
+        if word_field in note:
+            known_core_words.append(note[word_field])
+
+    return jsonify({'words': known_core_words}), 200
 
 
 def run_server():

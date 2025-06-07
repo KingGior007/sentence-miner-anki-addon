@@ -38,12 +38,22 @@ class AddCardRequestHandler(BaseHTTPRequestHandler):
             front = data.get('front', '')
             back = data.get('back', '')
             deck_name = data.get('deck', '')
+            if not all(k in data for k in ("front", "back", "deck")):
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Invalid data"}).encode())
+                return
 
             # Determine deck ID; fallback to current deck if not provided or invalid
             try:
-                did = mw.col.decks.id(deck_name) if deck_name else mw.col.decks.current()['id']
+                did = mw.col.decks.id(deck_name)
             except Exception:
-                did = mw.col.decks.current()['id']
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Error selecting the deck"}).encode())
+                return
 
             # Create and populate note
             note = mw.col.newNote()

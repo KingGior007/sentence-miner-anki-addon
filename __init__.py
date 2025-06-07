@@ -24,15 +24,12 @@ class AddCardRequestHandler(BaseHTTPRequestHandler):
 
             # Create and populate note
             note = mw.col.newNote()
+            note.model()['did'] = did
             note['Front'] = front
             note['Back'] = back
 
             # Add note to specified deck
             mw.col.add_note(note, did)
-
-            # Refresh the GUI safely on the main thread
-            # You can remove this line if it causes issues or isn't needed
-            # runOnMainThread(mw.reset)
 
             self.send_response(200)
             self.send_header('Content-Type', 'text/plain')

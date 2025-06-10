@@ -6,6 +6,7 @@ from aqt import mw
 class AddCardRequestHandler(BaseHTTPRequestHandler):
     ROUTES = {
         "/add_card": "handle_add_card",
+        "/get_known_core_words": "handle_get_known_core_words",
     }
 
     def log_message(self, format, *args):
@@ -85,6 +86,54 @@ class AddCardRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             error_msg = f'Error: {e}'.encode('utf-8')
             self.wfile.write(error_msg)
+
+    def handle_get_known_core_words(self):
+        length = int(self.headers.get('Content-Length', 0))
+        body = self.rfile.read(length).decode('utf-8')
+        try:
+            data = json.loads(body)
+            deck_name = data.get('deck', '')
+            word_field = data.get('wordField', '')
+    
+            if not deck_name or not word_field:
+                self.send_response(400)
+                self._send_cors_headers()
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Invalid data"}).encode("utf-8"))
+                return
+    
+            try:
+                did = mw.col.decks.id(deck_name)
+                mw.col.decks.select(did)
+            except Exception:
+                self.send_response(400)
+                self._send_cors_headers()
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Error selecting the deck"}).encode("utf-8"))
+                return
+    
+            note_ids = mw.col.findNotes(f'deck:"{deck_name}" -is:new')
+            words = []
+            for nid in note_ids:
+                note = mw.col.getNote(nid)
+                if word_field in note:
+                    words.append(note[word_field])
+    
+            self.send_response(200)
+            self._send_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"words": words}).encode("utf-8"))
+
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+
 
 def start_server():
     server = HTTPServer(('localhost', 5123), AddCardRequestHandler)

@@ -78,6 +78,7 @@ class AddCardRequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'text/plain')
             self.end_headers()
             self.wfile.write(b'Card added successfully')
+            self.wfile.write(json.dumps({'status': 'Card added', 'deck': deck_name}).encode('utf-8'))
 
         except Exception as e:
             self.send_response(500)
@@ -85,7 +86,7 @@ class AddCardRequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'text/plain')
             self.end_headers()
             error_msg = f'Error: {e}'.encode('utf-8')
-            self.wfile.write(error_msg)
+            self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
 
     def handle_get_known_core_words(self):
         length = int(self.headers.get('Content-Length', 0))

@@ -1,6 +1,6 @@
 # Kioku Anki Add-on
 
-This Anki add-on works with the Kioku Chrome extension to automatically add mined Japanese sentences as flashcards.
+This Anki add-on works with the [Kioku Chrome extension](https://github.com/KingGior007/sentence-miner-extension) to automatically add mined Japanese sentences as flashcards.
 
 ## Installation
 
